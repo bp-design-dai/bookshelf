@@ -1,8 +1,11 @@
 <?php
 
 use App\Http\Controllers\BookController;
+use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\GenreController;
+use App\Http\Controllers\RankingController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\ReviewLikeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [BookController::class, 'index'])->name('books.index');
@@ -17,24 +20,15 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('genres', GenreController::class)->except(['index', 'show']);
 
-    Route::post('/books/{book}/favorite', function () {
-        return back();
-    })->name('favorites.toggle');
+    Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
+    Route::post('/books/{book}/favorite', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
 
-    Route::get('/favorites', function () {
-        return view('favorites.index', ['books' => collect()]);
-    })->name('favorites.index');
-
-    Route::post('/reviews/{review}/like', function () {
-        return back();
-    })->name('reviews.like');
+    Route::post('/reviews/{review}/like', [ReviewLikeController::class, 'toggle'])->name('reviews.like');
 });
 
 Route::resource('genres', GenreController::class)->only(['index', 'show']);
 
-Route::get('/ranking', function () {
-    return view('ranking.index', ['books' => collect()]);
-})->name('ranking.index');
+Route::get('/ranking', [RankingController::class, 'index'])->name('ranking.index');
 
 Route::get('/home', function () {
     return redirect()->route('books.index');
