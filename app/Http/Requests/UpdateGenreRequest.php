@@ -27,7 +27,7 @@ class UpdateGenreRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'name' => 'ジャンル名',
+            'name' => 'genre name',
         ];
     }
 }
