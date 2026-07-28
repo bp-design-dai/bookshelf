@@ -17,7 +17,9 @@ class BookController extends Controller
             ->latest()
             ->paginate(10);
 
-        return view('books.index', compact('books'));
+        $genres = Genre::orderBy('name')->get();
+
+        return view('books.index', compact('books', 'genres'));
     }
 
     public function create()
