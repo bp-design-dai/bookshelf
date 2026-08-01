@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [BookController::class, 'index'])->name('books.index');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/books/isbn/{isbn}', [BookController::class, 'searchByIsbn'])
+        ->name('books.isbn.search');
+
     Route::resource('books', BookController::class)->except(['index']);
 
     Route::post('/books/{book}/reviews', [ReviewController::class, 'store'])

@@ -3,10 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\IndexBookRequest;
+use App\Http\Requests\SearchBookByIsbnRequest;
 use App\Http\Requests\StoreBookRequest;
 use App\Http\Requests\UpdateBookRequest;
 use App\Models\Book;
 use App\Models\Genre;
+use App\Services\GoogleBooksService;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\RequestException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
 class BookController extends Controller
@@ -52,6 +57,31 @@ class BookController extends Controller
         $genres = Genre::orderBy('name')->get();
 
         return view('books.index', compact('books', 'genres'));
+    }
+
+    public function searchByIsbn(
+        SearchBookByIsbnRequest $request,
+        GoogleBooksService $googleBooksService
+    ): JsonResponse {
+        try {
+            $bookData = $googleBooksService->searchByIsbn(
+                $request->validated('isbn')
+            );
+        } catch (ConnectionException|RequestException $exception) {
+            report($exception);
+
+            return response()->json([
+                'error' => '書籍情報の取得に失敗しました。',
+            ], 502);
+        }
+
+        if (! $bookData) {
+            return response()->json([
+                'error' => '書籍が見つかりませんでした。',
+            ], 404);
+        }
+
+        return response()->json($bookData);
     }
 
     public function create()
