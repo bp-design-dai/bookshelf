@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\IndexBookRequest;
 use App\Http\Requests\StoreBookRequest;
 use App\Http\Requests\UpdateBookRequest;
 use App\Models\Book;
@@ -10,12 +11,43 @@ use Illuminate\Support\Facades\Auth;
 
 class BookController extends Controller
 {
-    public function index()
+    public function index(IndexBookRequest $request)
     {
-        $books = Book::with('genres')
+        $keyword = $request->validated('keyword');
+        $genreId = $request->validated('genre_id');
+        $sort = $request->validated('sort', 'latest');
+
+        $books = Book::query()
+            ->with('genres')
             ->withAvg('reviews', 'rating')
-            ->latest()
-            ->paginate(10);
+            ->when($keyword, function ($query, $keyword) {
+                $query->where(function ($query) use ($keyword) {
+                    $query
+                        ->where('title', 'like', "%{$keyword}%")
+                        ->orWhere('author', 'like', "%{$keyword}%");
+                });
+            })
+            ->when($genreId, function ($query, $genreId) {
+                $query->whereHas('genres', function ($query) use ($genreId) {
+                    $query->where('genres.id', $genreId);
+                });
+            })
+            ->when($sort === 'latest', fn ($query) => $query->latest())
+            ->when($sort === 'oldest', fn ($query) => $query->oldest())
+            ->when(
+                $sort === 'rating',
+                fn ($query) => $query
+                    ->orderByDesc('reviews_avg_rating')
+                    ->latest('books.created_at')
+            )
+            ->when(
+                $sort === 'title',
+                fn ($query) => $query
+                    ->orderBy('title')
+                    ->latest('books.created_at')
+            )
+            ->paginate(10)
+            ->withQueryString();
 
         $genres = Genre::orderBy('name')->get();
 
