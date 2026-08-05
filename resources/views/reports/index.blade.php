@@ -22,11 +22,7 @@
                         </div>
                         <div class="border rounded-lg p-6 text-center">
                             <div class="text-4xl font-bold text-yellow-500 mb-2">
-                                @if ($stats['summary']['average_rating'] > 0)
-                                    {{ number_format($stats['summary']['average_rating'], 1) }}
-                                @else
-                                    -
-                                @endif
+                                {{ number_format($stats['summary']['average_rating'], 1) }}
                             </div>
                             <div class="text-sm text-gray-600">平均評価</div>
                         </div>
