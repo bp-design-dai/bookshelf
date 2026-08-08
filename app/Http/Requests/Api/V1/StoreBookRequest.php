@@ -11,6 +11,15 @@ class StoreBookRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('genre_ids') && is_array($this->genre_ids)) {
+            $this->merge([
+                'genre_ids' => array_values(array_unique($this->genre_ids)),
+            ]);
+        }
+    }
+
     public function rules(): array
     {
         return [
@@ -20,8 +29,8 @@ class StoreBookRequest extends FormRequest
             'published_date' => ['required', 'date'],
             'description' => ['nullable', 'string', 'max:1000'],
             'image_url' => ['nullable', 'url', 'max:2048'],
-            'genres' => ['required', 'array', 'min:1', 'max:3'],
-            'genres.*' => ['integer', 'exists:genres,id'],
+            'genre_ids' => ['required', 'array', 'min:1', 'max:3'],
+            'genre_ids.*' => ['integer', 'exists:genres,id'],
         ];
     }
 }
