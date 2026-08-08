@@ -25,7 +25,9 @@ class BookController extends Controller
 
     public function store(StoreBookRequest $request): BookResource
     {
-        $book = Book::create($request->safe()->except('genres'));
+        $book = $request->user()->books()->create(
+            $request->safe()->except('genres')
+        );
 
         $book->genres()->attach($request->validated('genres'));
 
@@ -45,6 +47,8 @@ class BookController extends Controller
 
     public function update(UpdateBookRequest $request, Book $book): BookResource
     {
+        $this->authorize('update', $book);
+
         $book->update($request->safe()->except('genres'));
 
         $book->genres()->sync($request->validated('genres'));
@@ -58,6 +62,8 @@ class BookController extends Controller
 
     public function destroy(Book $book): JsonResponse
     {
+        $this->authorize('delete', $book);
+
         $book->delete();
 
         return response()->json(null, 204);
